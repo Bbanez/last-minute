@@ -53,18 +53,26 @@ export async function createCamera(
           y = 0;
           player.g.position.y = player.position[1];
         } else if (player.position[1] > map.pHeight - h12) {
-          x = -map.pWidth + window.innerWidth;
-          player.g.position.x = h12 - (map.pHeight - h12 - player.position[1]);
+          y = -map.pHeight + window.innerHeight;
+          player.g.position.y = h12 - (map.pHeight - h12 - player.position[1]);
         } else {
           player.g.position.y = h12;
           skipChunkCalc[1] = false;
         }
         Layers[i].position.set(x, y);
       }
-      const cix = parseInt(`${(player.position[0] - w12) / 32}`) * 32;
-      const ciy = parseInt(`${(player.position[1] - h12) / 32}`) * 32;
-      const cex = parseInt(`${(player.position[0] + w12) / 32}`) * 32;
-      const cey = parseInt(`${(player.position[1] + h12) / 32}`) * 32;
+      const offset: Point = [
+        player.g.position.x - w12 + 32,
+        player.g.position.y - h12 + 32,
+      ];
+      const cix =
+        parseInt(`${(player.position[0] - w12) / 32}`) * 32 - offset[0] - 64;
+      const ciy =
+        parseInt(`${(player.position[1] - h12) / 32}`) * 32 - offset[1] - 64;
+      const cex =
+        parseInt(`${(player.position[0] + w12) / 32}`) * 32 - offset[0] + 64;
+      const cey =
+        parseInt(`${(player.position[1] + h12) / 32}`) * 32 - offset[1] + 64;
       for (let i = 0; i < map.chunks.length; i++) {
         const chunk = map.chunks[i];
         if (

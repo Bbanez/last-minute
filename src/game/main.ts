@@ -46,8 +46,8 @@ export class Game {
       layer.removeChildren(0, layer.children.length);
       this.app.stage.addChild(layer);
     }
-    this.player = new Player();
     this.map = await createGameMap(index);
+    this.player = new Player(this.map);
     Layers[0].addChild(this.player.g);
     this.cam = await createCamera(this.player, this.map);
     // for (let i = 0; i < 10; i++) {

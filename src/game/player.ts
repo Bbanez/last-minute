@@ -2,18 +2,20 @@ import { Graphics } from 'pixi.js';
 import { PI12, PI14, PI32, PI34, PI54, PI74 } from './consts';
 import { Keyboard, KeyboardEventType, KeyboardState } from './keyboard';
 import { Ticker } from './ticker';
+import { GameMap } from './map';
 
 export class Player {
   g: Graphics;
   size: [number, number] = [32, 80];
-  position: [number, number] = [2500, window.innerWidth / 2];
+  position: [number, number] = [window.innerWidth / 2, window.innerHeight / 2];
+  // position: [number, number] = [2500, 2500];
   speed = 4;
   move: [1 | -1 | 0, 1 | -1 | 0] = [0, 0];
   angle = 0;
 
   private unsubs: Array<() => void> = [];
 
-  constructor() {
+  constructor(private map: GameMap) {
     this.g = new Graphics();
     this.g.pivot.set(this.size[0] / 2, this.size[1] / 2);
     this.g.position.set(window.innerWidth / 2, window.innerHeight / 2);
@@ -80,6 +82,16 @@ export class Player {
     this.position[1] =
       this.speed * Math.sin(this.angle) * Math.abs(this.move[1]) +
       this.position[1];
+    if (this.position[0] <= 16) {
+      this.position[0] = 16;
+    } else if (this.position[0] >= this.map.pWidth - 16) {
+      this.position[0] = this.map.pWidth - 16;
+    }
+    if (this.position[1] <= 40) {
+      this.position[1] = 40;
+    } else if (this.position[1] >= this.map.pHeight - 40) {
+      this.position[1] = this.map.pHeight - 40;
+    }
   }
 
   destroy() {
