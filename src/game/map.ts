@@ -114,14 +114,14 @@ export async function createGameMap(index: number): Promise<GameMap> {
   }
   const groundTexture = BaseTexture.from(`/game/map/${index}-map.png`);
   const output: GameMap = {
-    width: mapPixInfo.width,
-    height: mapPixInfo.height,
-    pWidth: mapPixInfo.width / 32,
-    pHeight: mapPixInfo.height / 32,
+    pWidth: mapPixInfo.width,
+    pHeight: mapPixInfo.height,
+    width: mapPixInfo.width / 32,
+    height: mapPixInfo.height / 32,
     chunks: [],
   };
-  for (let x = 0; x < output.width; x += 32) {
-    for (let y = 0; y < output.height; y += 32) {
+  for (let x = 0; x < output.pWidth; x += 32) {
+    for (let y = 0; y < output.pHeight; y += 32) {
       const position: Point = [x, y];
       output.chunks.push(
         new Chunk(
@@ -132,7 +132,6 @@ export async function createGameMap(index: number): Promise<GameMap> {
       );
     }
   }
-  console.log(output);
   return output;
 }
 
