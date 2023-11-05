@@ -1,7 +1,6 @@
 import { BaseTexture, Rectangle, Sprite, Texture } from 'pixi.js';
-import { groundData } from '../data/ground';
 import { Chunk } from './chunk';
-import { MathUtil, Point } from './math';
+import { Point } from './math';
 
 export interface GameMap {
   width: number;
@@ -10,106 +9,130 @@ export interface GameMap {
   pWidth: number;
   // Height in pixels
   pHeight: number;
-  textureChannels: {
-    r: Texture[];
-    g: Texture[];
-    b: Texture[];
-  };
   chunks: Chunk[];
 }
 
+// export async function createGameMap(index: number): Promise<GameMap> {
+//   const mapPixInfo = await getPixelInfo(`/game/map/${index}-ground-map.png`);
+//   if (!mapPixInfo) {
+//     throw Error(`Cannot load map pixel info for map ${index}`);
+//   }
+//   const groundTexture = BaseTexture.from(`/game/map/${index}-ground.png`);
+//   const output: GameMap = {
+//     width: mapPixInfo.width,
+//     height: mapPixInfo.height,
+//     pWidth: mapPixInfo.width * 32,
+//     pHeight: mapPixInfo.height * 32,
+//     chunks: [],
+//     textureChannels: {
+//       r: [],
+//       g: [],
+//       b: [],
+//     },
+//   };
+//   const channels: Array<'r' | 'g' | 'b'> = ['r', 'g', 'b'];
+//   for (let c = 0; c < channels.length; c++) {
+//     const channel = channels[c];
+//     for (let i = 0; i < groundData[index].chunks[channel].length; i++) {
+//       const chunk = groundData[index].chunks[channel][i];
+//       const offset = [
+//         groundData[index].gridSize.w * chunk[0],
+//         groundData[index].gridSize.h * chunk[1],
+//       ];
+//       output.textureChannels[channel].push(
+//         new Texture(
+//           groundTexture,
+//           new Rectangle(
+//             offset[0],
+//             offset[1],
+//             groundData[index].gridSize.w,
+//             groundData[index].gridSize.h
+//           )
+//         )
+//       );
+//     }
+//   }
+//   const pixArrSize = mapPixInfo.width * mapPixInfo.height * 4;
+//   let x = 0;
+//   let y = 0;
+//   for (let i = 0; i < pixArrSize; i += 4) {
+//     const position: Point = [x * 32, y * 32];
+//     if (mapPixInfo.data[i] === 255) {
+//       output.chunks.push(
+//         new Chunk(
+//           new Sprite(
+//             output.textureChannels.r[
+//               MathUtil.randomInRangeInt(0, output.textureChannels.r.length - 1)
+//             ]
+//           ),
+//           'r',
+//           position
+//         )
+//       );
+//     } else if (mapPixInfo.data[i + 1] === 255) {
+//       output.chunks.push(
+//         new Chunk(
+//           new Sprite(
+//             output.textureChannels.b[
+//               MathUtil.randomInRangeInt(0, output.textureChannels.b.length - 1)
+//             ]
+//           ),
+//           'b',
+//           position
+//         )
+//       );
+//     } else if (mapPixInfo.data[i + 2] === 255) {
+//       output.chunks.push(
+//         new Chunk(
+//           new Sprite(
+//             output.textureChannels.g[
+//               MathUtil.randomInRangeInt(0, output.textureChannels.g.length - 1)
+//             ]
+//           ),
+//           'g',
+//           position
+//         )
+//       );
+//     }
+//     x++;
+//     if (x === mapPixInfo.width) {
+//       x = 0;
+//       y++;
+//     }
+//   }
+//   // for (let i = 0; i < output.chunks.length; i++) {
+//   //   const chunk = output.chunks[i];
+//   //   Layers[4].addChild(chunk.sprite);
+//   // }
+//   return output;
+// }
+
 export async function createGameMap(index: number): Promise<GameMap> {
-  const mapPixInfo = await getPixelInfo(`/game/map/${index}-ground-map.png`);
+  const mapPixInfo = await getPixelInfo(`/game/map/${index}-map.png`);
   if (!mapPixInfo) {
     throw Error(`Cannot load map pixel info for map ${index}`);
   }
-  const groundTexture = BaseTexture.from(`/game/map/${index}-ground.png`);
+  const groundTexture = BaseTexture.from(`/game/map/${index}-map.png`);
   const output: GameMap = {
     width: mapPixInfo.width,
     height: mapPixInfo.height,
-    pWidth: mapPixInfo.width * 32,
-    pHeight: mapPixInfo.height * 32,
+    pWidth: mapPixInfo.width / 32,
+    pHeight: mapPixInfo.height / 32,
     chunks: [],
-    textureChannels: {
-      r: [],
-      g: [],
-      b: [],
-    },
   };
-  const channels: Array<'r' | 'g' | 'b'> = ['r', 'g', 'b'];
-  for (let c = 0; c < channels.length; c++) {
-    const channel = channels[c];
-    for (let i = 0; i < groundData[index].chunks[channel].length; i++) {
-      const chunk = groundData[index].chunks[channel][i];
-      const offset = [
-        groundData[index].gridSize.w * chunk[0],
-        groundData[index].gridSize.h * chunk[1],
-      ];
-      output.textureChannels[channel].push(
-        new Texture(
-          groundTexture,
-          new Rectangle(
-            offset[0],
-            offset[1],
-            groundData[index].gridSize.w,
-            groundData[index].gridSize.h
-          )
-        )
-      );
-    }
-  }
-  const pixArrSize = mapPixInfo.width * mapPixInfo.height * 4;
-  let x = 0;
-  let y = 0;
-  for (let i = 0; i < pixArrSize; i += 4) {
-    const position: Point = [x * 32, y * 32];
-    if (mapPixInfo.data[i] === 255) {
+  for (let x = 0; x < output.width; x += 32) {
+    for (let y = 0; y < output.height; y += 32) {
+      const position: Point = [x, y];
       output.chunks.push(
         new Chunk(
-          new Sprite(
-            output.textureChannels.r[
-              MathUtil.randomInRangeInt(0, output.textureChannels.r.length - 1)
-            ]
-          ),
+          new Sprite(new Texture(groundTexture, new Rectangle(x, y, 32, 32))),
           'r',
           position
         )
       );
-    } else if (mapPixInfo.data[i + 1] === 255) {
-      output.chunks.push(
-        new Chunk(
-          new Sprite(
-            output.textureChannels.b[
-              MathUtil.randomInRangeInt(0, output.textureChannels.b.length - 1)
-            ]
-          ),
-          'b',
-          position
-        )
-      );
-    } else if (mapPixInfo.data[i + 2] === 255) {
-      output.chunks.push(
-        new Chunk(
-          new Sprite(
-            output.textureChannels.g[
-              MathUtil.randomInRangeInt(0, output.textureChannels.g.length - 1)
-            ]
-          ),
-          'g',
-          position
-        )
-      );
-    }
-    x++;
-    if (x === mapPixInfo.width) {
-      x = 0;
-      y++;
     }
   }
-  // for (let i = 0; i < output.chunks.length; i++) {
-  //   const chunk = output.chunks[i];
-  //   Layers[4].addChild(chunk.sprite);
-  // }
+  console.log(output);
   return output;
 }
 
