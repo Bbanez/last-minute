@@ -48,6 +48,7 @@ export class Game {
     }
     this.map = await createGameMap(index);
     this.player = new Player(this.map);
+    Layers[0].addChild(this.player.light);
     Layers[0].addChild(this.player.g);
     this.cam = await createCamera(this.player, this.map);
     // for (let i = 0; i < 10; i++) {

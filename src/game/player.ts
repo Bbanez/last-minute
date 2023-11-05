@@ -1,4 +1,4 @@
-import { Graphics } from 'pixi.js';
+import { BLEND_MODES, Graphics, Sprite } from 'pixi.js';
 import { PI12, PI14, PI32, PI34, PI54, PI74 } from './consts';
 import { Keyboard, KeyboardEventType, KeyboardState } from './keyboard';
 import { Ticker } from './ticker';
@@ -6,6 +6,7 @@ import { GameMap } from './map';
 
 export class Player {
   g: Graphics;
+  light: Sprite;
   size: [number, number] = [32, 80];
   position: [number, number] = [window.innerWidth / 2, window.innerHeight / 2];
   // position: [number, number] = [2500, 2500];
@@ -16,9 +17,13 @@ export class Player {
   private unsubs: Array<() => void> = [];
 
   constructor(private map: GameMap) {
+    this.light = Sprite.from('/game/map/p-light.png');
+    this.light.blendMode = BLEND_MODES.ADD;
     this.g = new Graphics();
     this.g.pivot.set(this.size[0] / 2, this.size[1] / 2);
+    this.light.pivot.set(250, 250);
     this.g.position.set(window.innerWidth / 2, window.innerHeight / 2);
+    this.light.position.set(window.innerWidth / 2, window.innerHeight / 2);
     this.g.width = this.size[0];
     this.g.height = this.size[1];
     this.g.beginFill(0x00ff00);
@@ -92,6 +97,7 @@ export class Player {
     } else if (this.position[1] >= this.map.pHeight - 40) {
       this.position[1] = this.map.pHeight - 40;
     }
+    this.light.position.set(this.g.position.x, this.g.position.y);
   }
 
   destroy() {
