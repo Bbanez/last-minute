@@ -10,13 +10,13 @@ export interface Camera {
   destroy(): void;
 }
 
-async function delay(ms: number) {
-  await new Promise<void>((resolve) => {
-    setTimeout(() => {
-      resolve();
-    }, ms);
-  });
-}
+// async function delay(ms: number) {
+//   await new Promise<void>((resolve) => {
+//     setTimeout(() => {
+//       resolve();
+//     }, ms);
+//   });
+// }
 
 export async function createCamera(
   player: Player,

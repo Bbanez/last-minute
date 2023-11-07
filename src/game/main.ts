@@ -1,4 +1,4 @@
-import { Application, Graphics } from 'pixi.js';
+import { Application } from 'pixi.js';
 import { Player } from './player';
 import { Layers } from './layers';
 import { Ticker } from './ticker';
