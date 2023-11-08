@@ -1,35 +1,42 @@
 use std::{
-    fs::File,
-    io::{Error, ErrorKind, Read, Write},
+    borrow::BorrowMut,
+    fs::{create_dir, File, OpenOptions},
+    io::{Read, Write},
     path::Path,
 };
 
 use serde::{Deserialize, Serialize};
+use tauri::api::path::home_dir;
 
 #[derive(Serialize, Deserialize)]
 struct Storage {
-    test: Option<String>,
+    accounts: Option<String>,
 }
 
 fn get_storage_file() -> File {
-    let file = File::create("storage.toml");
+    let home = home_dir().unwrap();
+    let home_base = home.display();
+    let home_path = format!("{}/last-minute", home_base);
+    let path = Path::new(&home_path);
+    if path.exists() == false {
+        create_dir(path).unwrap();
+    }
+    let file_path = format!("{}/last-minute/storage.toml", home_dir().unwrap().display());
+    let file = OpenOptions::new()
+        .read(true)
+        .write(true)
+        .create(true)
+        .open(file_path);
     let file = match file {
         Ok(f) => f,
-        Err(e) => match e.kind() {
-            ErrorKind::NotFound => match File::create("storage.toml") {
-                Ok(f) => f,
-                Err(e) => panic!("Failed to create a file {}", e),
-            },
-            other_error => {
-                panic!("Problem with file {}", other_error)
-            }
-        },
+        Err(e) => panic!("Problem with file {:?}", e),
     };
     file
 }
 
 fn read_storage() -> Storage {
-    let mut file = get_storage_file();
+    let mut f = get_storage_file();
+    let file = f.borrow_mut();
     let mut content = String::new();
     match file.read_to_string(&mut content) {
         Ok(_) => {
@@ -37,7 +44,7 @@ fn read_storage() -> Storage {
             storage
         }
         Err(e) => {
-            println!("{}", e);
+            println!("Failed to read file: {:?}", e);
             let storage: Storage = toml::from_str("").unwrap();
             storage
         }
@@ -45,9 +52,9 @@ fn read_storage() -> Storage {
 }
 
 fn write_storage(storage: Storage) -> () {
-    let mut file = get_storage_file();
+    let mut f = get_storage_file();
+    let file = f.borrow_mut();
     let s = toml::to_string(&storage).unwrap();
-    println!("{}", s);
     match file.write_all(s.as_bytes()) {
         Ok(r) => r,
         Err(e) => panic!("Failed to write file {}", e),
@@ -57,8 +64,8 @@ fn write_storage(storage: Storage) -> () {
 #[tauri::command]
 pub fn storage_get(key: &str) -> Option<String> {
     let storage = read_storage();
-    if key == "test" {
-        return storage.test;
+    if key == "accounts" {
+        return storage.accounts;
     }
     None
 }
@@ -66,8 +73,9 @@ pub fn storage_get(key: &str) -> Option<String> {
 #[tauri::command]
 pub fn storage_set(key: &str, value: &str) {
     let mut storage = read_storage();
-    if key == "test" {
-        storage.test = Some(String::from(value));
+    println!("Write DB: key={} value={}", key, value);
+    if key == "accounts" {
+        storage.accounts = Some(String::from(value));
         write_storage(storage);
     }
 }

@@ -1,40 +1,21 @@
-import { defineComponent, onBeforeUnmount, onMounted, ref } from 'vue';
-import { useScreen } from './screen';
-import { GameView, Home } from './views';
-import { Game } from './game';
+import { defineComponent, onMounted } from 'vue';
+import { Router } from './_router';
+import { DBHandler, useDb } from './db';
 
 export const app = defineComponent({
   setup() {
-    const screen = useScreen();
-    const el = ref<HTMLDivElement>(null as never);
-    let game: Game;
+    const db = useDb();
 
     onMounted(async () => {
-      game = new Game();
-      await game.load(0);
-      el.value.appendChild(game.app.view as HTMLCanvasElement);
-    });
-
-    onBeforeUnmount(() => {
-      if (app) {
-        game.destroy();
+      for (const k in db) {
+        const key = k as keyof DBHandler;
+        await db[key].setup();
       }
     });
-
-    function mountView() {
-      switch (screen) {
-        case 'home': {
-          return <Home />;
-        }
-        case 'game': {
-          return <GameView />;
-        }
-      }
-    }
 
     return () => (
       <div class="root">
-        <div ref={el} class="game" />;<div class="container">{mountView()}</div>
+        <Router />
       </div>
     );
   },
