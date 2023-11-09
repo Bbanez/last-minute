@@ -10,7 +10,9 @@ export const GameView = defineComponent({
     onMounted(async () => {
       game = new Game();
       await game.load(0);
-      el.value.appendChild(game.app.view as HTMLCanvasElement);
+      if (el) {
+        el.value.appendChild(game.app.view as HTMLCanvasElement);
+      }
     });
 
     onUnmounted(() => {

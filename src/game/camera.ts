@@ -41,29 +41,29 @@ export async function createCamera(
         let y = position[1];
         if (player.position[0] < w12) {
           x = 0;
-          player.g.position.x = player.position[0];
+          player.container.position.x = player.position[0];
         } else if (player.position[0] > map.pWidth - w12) {
           x = -map.pWidth + window.innerWidth;
-          player.g.position.x = w12 - (map.pWidth - w12 - player.position[0]);
+          player.container.position.x = w12 - (map.pWidth - w12 - player.position[0]);
         } else {
-          player.g.position.x = w12;
+          player.container.position.x = w12;
           skipChunkCalc[0] = false;
         }
         if (player.position[1] < h12) {
           y = 0;
-          player.g.position.y = player.position[1];
+          player.container.position.y = player.position[1];
         } else if (player.position[1] > map.pHeight - h12) {
           y = -map.pHeight + window.innerHeight;
-          player.g.position.y = h12 - (map.pHeight - h12 - player.position[1]);
+          player.container.position.y = h12 - (map.pHeight - h12 - player.position[1]);
         } else {
-          player.g.position.y = h12;
+          player.container.position.y = h12;
           skipChunkCalc[1] = false;
         }
         Layers[i].position.set(x, y);
       }
       const offset: Point = [
-        player.g.position.x - w12 + 32,
-        player.g.position.y - h12 + 32,
+        player.container.position.x - w12 + 32,
+        player.container.position.y - h12 + 32,
       ];
       const cix =
         parseInt(`${(player.position[0] - w12) / 32}`) * 32 - offset[0] - 64;

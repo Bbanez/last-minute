@@ -1,34 +1,41 @@
-import { BLEND_MODES, Graphics, Sprite } from 'pixi.js';
+import {
+  AnimatedSprite,
+  BLEND_MODES,
+  BaseTexture,
+  Container,
+  Rectangle,
+  Sprite,
+  Texture,
+} from 'pixi.js';
 import { PI12, PI14, PI32, PI34, PI54, PI74 } from './consts';
 import { Keyboard, KeyboardEventType, KeyboardState } from './keyboard';
 import { Ticker } from './ticker';
 import { GameMap } from './map';
+import { BB, Point } from './math';
 
 export class Player {
-  g: Graphics;
+  container: Container;
   light: Sprite;
   size: [number, number] = [32, 80];
-  position: [number, number] = [window.innerWidth / 2, window.innerHeight / 2];
+  position: Point = [window.innerWidth / 2, window.innerHeight / 2];
   // position: [number, number] = [2500, 2500];
   speed = 4;
   move: [1 | -1 | 0, 1 | -1 | 0] = [0, 0];
   angle = 0;
+  bb: BB;
 
   private unsubs: Array<() => void> = [];
 
   constructor(private map: GameMap) {
     this.light = Sprite.from('/game/map/p-light.png');
     this.light.blendMode = BLEND_MODES.ADD;
-    this.g = new Graphics();
-    this.g.pivot.set(this.size[0] / 2, this.size[1] / 2);
     this.light.pivot.set(250, 250);
-    this.g.position.set(window.innerWidth / 2, window.innerHeight / 2);
-    this.light.position.set(window.innerWidth / 2, window.innerHeight / 2);
-    this.g.width = this.size[0];
-    this.g.height = this.size[1];
-    this.g.beginFill(0x00ff00);
-    this.g.drawRect(0, 0, ...this.size);
-    this.g.endFill();
+    this.container = new Container();
+    this.container.addChild(this.light);
+    // this.container.pivot.set(this.size[0] / 2, this.size[1] / 2);
+    // this.container.position.set(window.innerWidth / 2, window.innerHeight / 2);
+    // this.light.position.set(window.innerWidth / 2, window.innerHeight / 2);
+    this.bb = new BB(32, 80, this.position);
     this.unsubs.push(
       Ticker.subscribe(() => {
         this.calcPosition();
@@ -40,6 +47,19 @@ export class Player {
         this.setMove(state);
       })
     );
+
+    const idleBaseTexture = BaseTexture.from('/game/character/demo/run.png');
+    const idleFrames: Texture[] = [];
+    for (let i = 0; i < 8; i++) {
+      idleFrames.push(
+        new Texture(idleBaseTexture, new Rectangle(i * 48, 0, 48, 48))
+      );
+    }
+    const idleAnim = new AnimatedSprite(idleFrames);
+    idleAnim.play();
+    idleAnim.pivot.set(24, 24);
+    idleAnim.animationSpeed = 0.25;
+    this.container.addChild(idleAnim);
   }
 
   setMove(state: KeyboardState) {
@@ -97,11 +117,15 @@ export class Player {
     } else if (this.position[1] >= this.map.pHeight - 40) {
       this.position[1] = this.map.pHeight - 40;
     }
-    this.light.position.set(this.g.position.x, this.g.position.y);
+    // this.light.position.set(
+    //   this.container.position.x,
+    //   this.container.position.y
+    // );
+    this.bb.updatePosition([this.position[0] - 16, this.position[1] - 40]);
   }
 
   destroy() {
-    this.g.clear();
+    this.container.removeChildren(0, this.container.children.length);
     this.unsubs.forEach((e) => e());
   }
 }

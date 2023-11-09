@@ -31,11 +31,11 @@ let route: Ref<Route>;
 export function useRoute(): Route {
   if (!route) {
     route = ref<Route>({
-      path: 'home',
+      path: 'game',
       data: {},
       history: [
         {
-          path: 'home',
+          path: 'game',
           data: {},
         },
       ],
