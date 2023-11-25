@@ -3,6 +3,7 @@
 
 mod com;
 pub mod storage;
+pub mod game;
 
 use com::{player, yo};
 
