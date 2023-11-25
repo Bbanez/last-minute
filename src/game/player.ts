@@ -26,15 +26,12 @@ export class Player {
 
   private unsubs: Array<() => void> = [];
 
-  constructor(private map: GameMap) {
+  constructor(private map: GameMap, public hp: number) {
     this.light = Sprite.from('/game/map/p-light.png');
     this.light.blendMode = BLEND_MODES.ADD;
     this.light.pivot.set(250, 250);
     this.container = new Container();
     this.container.addChild(this.light);
-    // this.container.pivot.set(this.size[0] / 2, this.size[1] / 2);
-    // this.container.position.set(window.innerWidth / 2, window.innerHeight / 2);
-    // this.light.position.set(window.innerWidth / 2, window.innerHeight / 2);
     this.bb = new BB(32, 80, this.position);
     this.unsubs.push(
       Ticker.subscribe(() => {

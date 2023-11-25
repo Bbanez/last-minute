@@ -5,6 +5,7 @@ import { Ticker } from './ticker';
 import { Keyboard } from './keyboard';
 import { GameMap, createGameMap } from './map';
 import { Camera, createCamera } from './camera';
+import { Enemy } from './enemy';
 
 export class Game {
   app: Application;
@@ -47,19 +48,21 @@ export class Game {
       this.app.stage.addChild(layer);
     }
     this.map = await createGameMap(index);
-    this.player = new Player(this.map);
+    this.player = new Player(this.map, 20);
     // Layers[0].addChild(this.player.light);
     Layers[0].addChild(this.player.container);
     this.cam = await createCamera(this.player, this.map);
-    // for (let i = 0; i < 10; i++) {
-    //   for (let j = 0; j < 10; j++) {
-    //     const g = new Graphics();
-    //     g.beginFill(0xff0000);
-    //     g.drawRect(i * 32, j * 32, 32, 32);
-    //     g.endFill();
-    //     Layers[4].addChild(g);
-    //   }
-    // }
+    this.player.bb.show(Layers[1]);
+    const enemy = new Enemy(
+      [this.player.position[0] + 100, this.player.position[1] + 100],
+      10
+    );
+    enemy.destination = [...this.player.position];
+    enemy.bb.show(Layers[2]);
+    Layers[3].addChild(enemy.container);
+    Ticker.subscribe(() => {
+      enemy.destination = [...this.player.position];
+    });
   }
 }
 
