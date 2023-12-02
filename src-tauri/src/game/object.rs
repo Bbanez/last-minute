@@ -2,7 +2,7 @@ use serde::{Serialize, Deserialize};
 
 use super::bounding_box::BoundingBox;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct GameObject {
     position: (f32, f32),
     pub size: (f32, f32),

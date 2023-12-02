@@ -1,14 +1,15 @@
-use std::{borrow::BorrowMut, f32::consts::PI};
+use std::f32::consts::PI;
 
 use serde::{Deserialize, Serialize};
+
+use crate::GameState;
 
 use super::{
     consts::{PI12, PI14, PI32, PI34, PI54, PI74},
     object::GameObject,
-    store::STORE,
 };
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Player {
     pub hp: f32,
     pub speed: f32,
@@ -81,8 +82,35 @@ impl Player {
 }
 
 #[tauri::command]
-pub fn player_load(screen_width: f32, screen_height: f32) {
-    let player = STORE.player.unwrap();
-    player.hp = 5.0;
-    drop(player);
+pub fn player_load(
+    state: tauri::State<GameState>,
+    screen_width: f32,
+    screen_height: f32,
+) -> Player {
+    let mut state_guide = state.0.lock().unwrap();
+    state_guide
+        .player
+        .obj
+        .set_position((screen_width / 2.0, screen_height / 2.0));
+    Player::new(
+        state_guide.player.obj.get_position(),
+        state_guide.player.obj.size,
+        state_guide.player.hp,
+        state_guide.player.speed,
+        state_guide.player.map_size,
+    )
+}
+
+#[tauri::command]
+pub fn player_motion(state: tauri::State<GameState>, m: (f32, f32)) {
+    let mut state_guide = state.0.lock().unwrap();
+    state_guide.player.set_motion(m);
+}
+
+#[tauri::command]
+pub fn player_get_position(state: tauri::State<GameState>) -> (f32, f32, f32) {
+    let mut state_guide = state.0.lock().unwrap();
+    state_guide.player.calc_position();
+    let pos = state_guide.player.obj.get_position();
+    (pos.0, pos.1, state_guide.player.angle)
 }

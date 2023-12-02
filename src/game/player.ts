@@ -12,6 +12,7 @@ import { Keyboard, KeyboardEventType, KeyboardState } from './keyboard';
 import { Ticker } from './ticker';
 import { GameMap } from './map';
 import { BB, Point } from './math';
+import { invoke } from '@tauri-apps/api';
 
 export class Player {
   container: Container;
@@ -34,14 +35,14 @@ export class Player {
     this.container.addChild(this.light);
     this.bb = new BB(32, 80, this.position);
     this.unsubs.push(
-      Ticker.subscribe(() => {
-        this.calcPosition();
+      Ticker.subscribe(async () => {
+        await this.calcPosition();
       }),
-      Keyboard.subscribe(KeyboardEventType.KEY_DOWN, (state) => {
-        this.setMove(state);
+      Keyboard.subscribe(KeyboardEventType.KEY_DOWN, async (state) => {
+        await this.setMove(state);
       }),
-      Keyboard.subscribe(KeyboardEventType.KEY_UP, (state) => {
-        this.setMove(state);
+      Keyboard.subscribe(KeyboardEventType.KEY_UP, async (state) => {
+        await this.setMove(state);
       })
     );
 
@@ -59,7 +60,7 @@ export class Player {
     this.container.addChild(idleAnim);
   }
 
-  setMove(state: KeyboardState) {
+  async setMove(state: KeyboardState) {
     if (state.w) {
       this.move[1] = -1;
     } else if (state.s) {
@@ -74,50 +75,13 @@ export class Player {
     } else {
       this.move[0] = 0;
     }
-    this.calcAngle();
+    await invoke('player_motion', { m: this.move });
   }
 
-  calcAngle() {
-    if (this.move[0] === 1 && this.move[1] === 0) {
-      this.angle = 0;
-    } else if (this.move[0] === 1 && this.move[1] === 1) {
-      this.angle = PI14;
-    } else if (this.move[0] === 0 && this.move[1] === 1) {
-      this.angle = PI12;
-    } else if (this.move[0] === -1 && this.move[1] === 1) {
-      this.angle = PI34;
-    } else if (this.move[0] === -1 && this.move[1] === 0) {
-      this.angle = Math.PI;
-    } else if (this.move[0] === -1 && this.move[1] === -1) {
-      this.angle = PI54;
-    } else if (this.move[0] === 0 && this.move[1] === -1) {
-      this.angle = PI32;
-    } else if (this.move[0] === 1 && this.move[1] === -1) {
-      this.angle = PI74;
-    }
-  }
-
-  calcPosition() {
-    this.position[0] =
-      this.speed * Math.cos(this.angle) * Math.abs(this.move[0]) +
-      this.position[0];
-    this.position[1] =
-      this.speed * Math.sin(this.angle) * Math.abs(this.move[1]) +
-      this.position[1];
-    if (this.position[0] <= 16) {
-      this.position[0] = 16;
-    } else if (this.position[0] >= this.map.pWidth - 16) {
-      this.position[0] = this.map.pWidth - 16;
-    }
-    if (this.position[1] <= 40) {
-      this.position[1] = 40;
-    } else if (this.position[1] >= this.map.pHeight - 40) {
-      this.position[1] = this.map.pHeight - 40;
-    }
-    // this.light.position.set(
-    //   this.container.position.x,
-    //   this.container.position.y
-    // );
+  async calcPosition() {
+    const p = await invoke<[number, number, number]>('player_get_position');
+    this.position = [p[0], p[1]];
+    this.angle = p[2];
     this.bb.updatePosition([this.position[0] - 16, this.position[1] - 40]);
   }
 

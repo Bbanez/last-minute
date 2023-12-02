@@ -7,6 +7,7 @@ import { GameMap, createGameMap } from './map';
 import { Camera, createCamera } from './camera';
 import { Enemy } from './enemy';
 import { loadBcmsData } from './bcms';
+import { invoke } from '@tauri-apps/api';
 
 export class Game {
   app: Application;
@@ -36,6 +37,10 @@ export class Game {
 
   async load(mapName: string) {
     await loadBcmsData();
+    await invoke('player_load', {
+      screenWidth: window.innerWidth,
+      screenHeight: window.innerHeight,
+    });
     if (this.player) {
       this.player.destroy();
     }
