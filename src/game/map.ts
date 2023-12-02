@@ -303,6 +303,58 @@ export async function createGameMap(name: string): Promise<GameMap> {
         } else if (
           pixelsInfo.tl[0] === 255 &&
           pixelsInfo.tm[1] === 255 &&
+          // pixelsInfo.tr[0] === 255 &&
+          pixelsInfo.ml[1] === 255 &&
+          pixelsInfo.mm[1] === 255 &&
+          pixelsInfo.mr[0] === 255 &&
+          pixelsInfo.bl[1] === 255 &&
+          pixelsInfo.bm[1] === 255
+          // pixelsInfo.br[1] === 255
+        ) {
+          chunkName = 'P';
+          // angle = PI12;
+        } else if (
+          pixelsInfo.tl[1] === 255 &&
+          pixelsInfo.tm[1] === 255 &&
+          pixelsInfo.tr[0] === 255 &&
+          pixelsInfo.ml[1] === 255 &&
+          pixelsInfo.mm[1] === 255 &&
+          pixelsInfo.mr[1] === 255 &&
+          // pixelsInfo.bl[0] === 255 &&
+          pixelsInfo.bm[0] === 255
+          // pixelsInfo.br[1] === 255
+        ) {
+          chunkName = 'P';
+          angle = PI12;
+        } else if (
+          // pixelsInfo.tl[0] === 255 &&
+          pixelsInfo.tm[1] === 255 &&
+          pixelsInfo.tr[1] === 255 &&
+          pixelsInfo.ml[0] === 255 &&
+          pixelsInfo.mm[1] === 255 &&
+          pixelsInfo.mr[1] === 255 &&
+          // pixelsInfo.bl[0] === 255 &&
+          pixelsInfo.bm[1] === 255 &&
+          pixelsInfo.br[0] === 255
+        ) {
+          chunkName = 'P';
+          angle = Math.PI;
+        } else if (
+          // pixelsInfo.tl[0] === 255 &&
+          pixelsInfo.tm[0] === 255 &&
+          // pixelsInfo.tr[0] === 255 &&
+          pixelsInfo.ml[1] === 255 &&
+          pixelsInfo.mm[1] === 255 &&
+          pixelsInfo.mr[1] === 255 &&
+          pixelsInfo.bl[0] === 255 &&
+          pixelsInfo.bm[1] === 255 &&
+          pixelsInfo.br[1] === 255
+        ) {
+          chunkName = 'P';
+          angle = PI32;
+        } else if (
+          pixelsInfo.tl[0] === 255 &&
+          pixelsInfo.tm[1] === 255 &&
           // pixelsInfo.tr[1] === 255 &&
           pixelsInfo.ml[1] === 255 &&
           pixelsInfo.mm[1] === 255 &&
