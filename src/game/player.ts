@@ -19,7 +19,7 @@ export class Player {
   size: [number, number] = [32, 80];
   position: Point = [window.innerWidth / 2, window.innerHeight / 2];
   // position: [number, number] = [2500, 2500];
-  speed = 4;
+  speed = 8;
   move: [1 | -1 | 0, 1 | -1 | 0] = [0, 0];
   angle = 0;
   bb: BB;
