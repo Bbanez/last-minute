@@ -1,6 +1,6 @@
 import { BaseTexture, Graphics, Rectangle, Sprite, Texture } from 'pixi.js';
 import { Chunk } from './chunk';
-import { Point } from './math';
+import { MathUtil, Point } from './math';
 import { bcms } from './bcms';
 import { LmTileDataGroup } from '../types';
 import { PI12, PI32 } from './consts';
@@ -36,7 +36,7 @@ export async function createGameMap(name: string): Promise<GameMap> {
     for (let x = 0; x < output.width; x++) {
       if (chunkInfo.data[(x + output.height * y) * 4] > 250) {
         const D = mapData.chunks.find((e) => e.name === 'D') as LmTileDataGroup;
-        const optionsIndex = 0;
+        const optionsIndex = MathUtil.randomInRangeInt(0, D.options.length - 1);
         output.chunks.push(
           new Chunk(
             new Sprite(
@@ -705,7 +705,10 @@ export async function createGameMap(name: string): Promise<GameMap> {
         }
         const cInfo = mapData.chunks.find((e) => e.name === chunkName);
         if (cInfo) {
-          const optionsIndex = 0;
+          const optionsIndex = MathUtil.randomInRangeInt(
+            0,
+            cInfo.options.length - 1
+          );
           output.chunks.push(
             new Chunk(
               new Sprite(
