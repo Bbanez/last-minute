@@ -6,6 +6,7 @@ import { Keyboard } from './keyboard';
 import { GameMap, createGameMap } from './map';
 import { Camera, createCamera } from './camera';
 import { Enemy } from './enemy';
+import { loadBcmsData } from './bcms';
 
 export class Game {
   app: Application;
@@ -18,7 +19,7 @@ export class Game {
     this.app = new Application({
       background: 0x000000,
       resizeTo: window,
-      antialias: true,
+      // antialias: true,
     });
     this.app.ticker.add(() => {
       Ticker.tick();
@@ -33,7 +34,8 @@ export class Game {
     this.app.destroy();
   }
 
-  async load(index: number) {
+  async load(mapName: string) {
+    await loadBcmsData();
     if (this.player) {
       this.player.destroy();
     }
@@ -47,7 +49,7 @@ export class Game {
       layer.removeChildren(0, layer.children.length);
       this.app.stage.addChild(layer);
     }
-    this.map = await createGameMap(index);
+    this.map = await createGameMap(mapName);
     this.player = new Player(this.map, 20);
     // Layers[0].addChild(this.player.light);
     Layers[0].addChild(this.player.container);

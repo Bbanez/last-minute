@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# BCMS
+/src-tauri/bcms
+/public/bcms
+/src/types/bcms

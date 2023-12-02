@@ -1,10 +1,14 @@
-use std::f32::consts::PI;
+use std::{borrow::BorrowMut, f32::consts::PI};
+
+use serde::{Deserialize, Serialize};
 
 use super::{
     consts::{PI12, PI14, PI32, PI34, PI54, PI74},
     object::GameObject,
+    store::STORE,
 };
 
+#[derive(Serialize, Deserialize)]
 pub struct Player {
     pub hp: f32,
     pub speed: f32,
@@ -15,6 +19,23 @@ pub struct Player {
 }
 
 impl Player {
+    pub fn new(
+        position: (f32, f32),
+        size: (f32, f32),
+        hp: f32,
+        speed: f32,
+        map_size: (f32, f32),
+    ) -> Player {
+        Player {
+            hp,
+            speed,
+            angle: 0.0,
+            motion: (0.0, 0.0),
+            obj: GameObject::new(position, size),
+            map_size,
+        }
+    }
+
     pub fn set_motion(&mut self, motion: (f32, f32)) {
         self.motion = motion;
         // Set angle
@@ -57,4 +78,11 @@ impl Player {
         }
         self.obj.set_position((x, y))
     }
+}
+
+#[tauri::command]
+pub fn player_load(screen_width: f32, screen_height: f32) {
+    let player = STORE.player.unwrap();
+    player.hp = 5.0;
+    drop(player);
 }

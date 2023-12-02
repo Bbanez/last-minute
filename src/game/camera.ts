@@ -44,7 +44,8 @@ export async function createCamera(
           player.container.position.x = player.position[0];
         } else if (player.position[0] > map.pWidth - w12) {
           x = -map.pWidth + window.innerWidth;
-          player.container.position.x = w12 - (map.pWidth - w12 - player.position[0]);
+          player.container.position.x =
+            w12 - (map.pWidth - w12 - player.position[0]);
         } else {
           player.container.position.x = w12;
           skipChunkCalc[0] = false;
@@ -54,7 +55,8 @@ export async function createCamera(
           player.container.position.y = player.position[1];
         } else if (player.position[1] > map.pHeight - h12) {
           y = -map.pHeight + window.innerHeight;
-          player.container.position.y = h12 - (map.pHeight - h12 - player.position[1]);
+          player.container.position.y =
+            h12 - (map.pHeight - h12 - player.position[1]);
         } else {
           player.container.position.y = h12;
           skipChunkCalc[1] = false;
