@@ -1,11 +1,8 @@
-import { createFS } from '@banez/fs';
-import { createBcmsClient } from '@becomes/cms-client';
-import { BCMSClientMediaResponseItem } from '@becomes/cms-client/types';
+const path = require('path');
+const { createFS } = require('@banez/fs');
+const { createBcmsClient } = require('@becomes/cms-client');
 
-function resolveMediaPath(
-  media: BCMSClientMediaResponseItem,
-  allMedia: BCMSClientMediaResponseItem[]
-): string {
+function resolveMediaPath(media, allMedia) {
   if (!media.isInRoot) {
     const parent = allMedia.find((e) => e._id === media.parentId);
     if (parent) {
@@ -17,7 +14,7 @@ function resolveMediaPath(
 
 async function main() {
   const fs = createFS({
-    base: process.cwd(),
+    base: path.join(process.cwd()),
   });
   const client = createBcmsClient({
     cmsOrigin: 'https://cms.vajaga.com',
@@ -57,7 +54,7 @@ async function main() {
   const tsTypes = await client.typeConverter.getAll({
     language: 'typescript',
   });
-  const index: string[] = [];
+  const index = [];
   for (let i = 0; i < tsTypes.length; i++) {
     const tsType = tsTypes[i];
     if (tsType.outputFile.includes('lm_')) {
