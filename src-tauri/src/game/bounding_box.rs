@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use super::collision::{collision_with_bb, collision_with_point};
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct BoundingBox {
     pub position: (f32, f32),
@@ -33,7 +35,11 @@ impl BoundingBox {
     }
 
     pub fn is_inside(&mut self, point: (f32, f32)) -> bool {
-        point.0 > self.left && point.0 < self.right && point.1 > self.top && point.1 < self.bottom
+        collision_with_point((self.top, self.right, self.bottom, self.left), point)
+    }
+
+    pub fn does_intersects(&mut self, bb: (f32, f32, f32, f32)) -> bool {
+        collision_with_bb((self.top, self.right, self.bottom, self.left), bb)
     }
 
     pub fn does_intersects_bb(&mut self, bb: BoundingBox) -> bool {

@@ -13,7 +13,7 @@ use super::{
 pub struct Player {
     pub hp: f32,
     pub speed: f32,
-    angle: f32,
+    pub angle: f32,
     motion: (f32, f32),
     pub obj: GameObject,
     map_size: (f32, f32),
@@ -35,6 +35,14 @@ impl Player {
             obj: GameObject::new(position, size),
             map_size,
         }
+    }
+
+    pub fn set_hp(&mut self, hp: f32) {
+        self.hp = hp;
+    }
+
+    pub fn set_speed(&mut self, speed: f32) {
+        self.speed = speed;
     }
 
     pub fn set_motion(&mut self, motion: (f32, f32)) {
@@ -86,31 +94,49 @@ pub fn player_load(
     state: tauri::State<GameState>,
     screen_width: f32,
     screen_height: f32,
+    character_id: &str,
 ) -> Player {
-    let mut state_guide = state.0.lock().unwrap();
-    state_guide
-        .player
+    let mut state_guard = state.0.lock().unwrap();
+    let mut player = Player::new(
+        state_guard.player.obj.get_position(),
+        state_guard.player.obj.size,
+        state_guard.player.hp,
+        state_guard.player.speed,
+        state_guard.player.map_size,
+    );
+    {
+        let char = state_guard.find_character(character_id);
+        player.set_hp(char.hp as f32);
+        player.set_speed(char.speed as f32);
+    }
+    player
         .obj
         .set_position((screen_width / 2.0, screen_height / 2.0));
+    state_guard.player = player;
     Player::new(
-        state_guide.player.obj.get_position(),
-        state_guide.player.obj.size,
-        state_guide.player.hp,
-        state_guide.player.speed,
-        state_guide.player.map_size,
+        state_guard.player.obj.get_position(),
+        state_guard.player.obj.size,
+        state_guard.player.hp,
+        state_guard.player.speed,
+        state_guard.player.map_size,
     )
 }
 
 #[tauri::command]
 pub fn player_motion(state: tauri::State<GameState>, m: (f32, f32)) {
-    let mut state_guide = state.0.lock().unwrap();
-    state_guide.player.set_motion(m);
+    let mut state_guard = state.0.lock().unwrap();
+    state_guard.player.set_motion(m);
 }
 
 #[tauri::command]
-pub fn player_get_position(state: tauri::State<GameState>) -> (f32, f32, f32) {
-    let mut state_guide = state.0.lock().unwrap();
-    state_guide.player.calc_position();
-    let pos = state_guide.player.obj.get_position();
-    (pos.0, pos.1, state_guide.player.angle)
+pub fn player_update(state: tauri::State<GameState>) -> Player {
+    let mut state_guard = state.0.lock().unwrap();
+    state_guard.player.calc_position();
+    Player::new(
+        state_guard.player.obj.get_position(),
+        state_guard.player.obj.size,
+        state_guard.player.hp,
+        state_guard.player.speed,
+        state_guard.player.map_size,
+    )
 }

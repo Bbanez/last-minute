@@ -1,6 +1,6 @@
-import { BaseTexture, Graphics, Rectangle, Sprite, Texture } from 'pixi.js';
+import { BaseTexture, Rectangle, Sprite, Texture } from 'pixi.js';
 import { Chunk } from './chunk';
-import { MathUtil, Point } from './math';
+import { MathUtil } from './math';
 import { bcms } from './bcms';
 import { LmTileDataGroup } from '../types';
 import { PI12, PI32 } from './consts';

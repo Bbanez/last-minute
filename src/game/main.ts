@@ -1,5 +1,4 @@
 import { Application } from 'pixi.js';
-import { Player } from './player';
 import { Layers } from './layers';
 import { Ticker } from './ticker';
 import { Keyboard } from './keyboard';
@@ -7,7 +6,7 @@ import { GameMap, createGameMap } from './map';
 import { Camera, createCamera } from './camera';
 import { Enemy } from './enemy';
 import { loadBcmsData } from './bcms';
-import { invoke } from '@tauri-apps/api';
+import { Player, createPlayer } from './player';
 
 export class Game {
   app: Application;
@@ -37,10 +36,10 @@ export class Game {
 
   async load(mapName: string) {
     await loadBcmsData();
-    await invoke('player_load', {
-      screenWidth: window.innerWidth,
-      screenHeight: window.innerHeight,
-    });
+    // await invoke('player_load', {
+    //   screenWidth: window.innerWidth,
+    //   screenHeight: window.innerHeight,
+    // });
     if (this.player) {
       this.player.destroy();
     }
@@ -55,20 +54,22 @@ export class Game {
       this.app.stage.addChild(layer);
     }
     this.map = await createGameMap(mapName);
-    this.player = new Player(this.map, 20);
+    this.player = await createPlayer();
     // Layers[0].addChild(this.player.light);
     Layers[0].addChild(this.player.container);
     this.cam = await createCamera(this.player, this.map);
-    this.player.bb.show(Layers[1]);
     const enemy = new Enemy(
-      [this.player.position[0] + 100, this.player.position[1] + 100],
+      [
+        this.player.rust.obj.position[0] + 100,
+        this.player.rust.obj.position[1] + 100,
+      ],
       10
     );
-    enemy.destination = [...this.player.position];
+    enemy.destination = [...this.player.rust.obj.position];
     enemy.bb.show(Layers[2]);
     Layers[3].addChild(enemy.container);
     Ticker.subscribe(() => {
-      enemy.destination = [...this.player.position];
+      enemy.destination = [...this.player.rust.obj.position];
     });
   }
 }

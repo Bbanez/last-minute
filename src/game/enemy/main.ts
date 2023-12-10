@@ -1,5 +1,5 @@
-import { Container, Graphics } from 'pixi.js';
-import { BB, MathUtil, Point } from '../math';
+import { Container } from 'pixi.js';
+import { BB, Point } from '../math';
 import { Ticker } from '../ticker';
 
 export class Enemy {

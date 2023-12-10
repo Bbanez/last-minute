@@ -24,6 +24,6 @@ dist-ssr
 *.sw?
 
 # BCMS
-/src-tauri/bcms
+/src-tauri/src/bcms
 /public/bcms
 /src/types/bcms

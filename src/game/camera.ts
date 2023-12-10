@@ -34,29 +34,29 @@ export async function createCamera(
       const skipChunkCalc = [true, true];
       for (let i = 1; i < 5; i++) {
         const position: Point = [
-          -player.position[0] + w12,
-          -player.position[1] + h12,
+          -player.rust.obj.position[0] + w12,
+          -player.rust.obj.position[1] + h12,
         ];
         let x = position[0];
         let y = position[1];
-        if (player.position[0] < w12) {
+        if (player.rust.obj.position[0] < w12) {
           x = 0;
-          player.container.position.x = player.position[0];
-        } else if (player.position[0] > map.pWidth - w12) {
+          player.container.position.x = player.rust.obj.position[0];
+        } else if (player.rust.obj.position[0] > map.pWidth - w12) {
           x = -map.pWidth + window.innerWidth;
           player.container.position.x =
-            w12 - (map.pWidth - w12 - player.position[0]);
+            w12 - (map.pWidth - w12 - player.rust.obj.position[0]);
         } else {
           player.container.position.x = w12;
           skipChunkCalc[0] = false;
         }
-        if (player.position[1] < h12) {
+        if (player.rust.obj.position[1] < h12) {
           y = 0;
-          player.container.position.y = player.position[1];
-        } else if (player.position[1] > map.pHeight - h12) {
+          player.container.position.y = player.rust.obj.position[1];
+        } else if (player.rust.obj.position[1] > map.pHeight - h12) {
           y = -map.pHeight + window.innerHeight;
           player.container.position.y =
-            h12 - (map.pHeight - h12 - player.position[1]);
+            h12 - (map.pHeight - h12 - player.rust.obj.position[1]);
         } else {
           player.container.position.y = h12;
           skipChunkCalc[1] = false;
@@ -68,13 +68,13 @@ export async function createCamera(
         player.container.position.y - h12 + 32,
       ];
       const cix =
-        parseInt(`${(player.position[0] - w12) / 32}`) * 32 - offset[0] - 64;
+        parseInt(`${(player.rust.obj.position[0] - w12) / 32}`) * 32 - offset[0] - 64;
       const ciy =
-        parseInt(`${(player.position[1] - h12) / 32}`) * 32 - offset[1] - 64;
+        parseInt(`${(player.rust.obj.position[1] - h12) / 32}`) * 32 - offset[1] - 64;
       const cex =
-        parseInt(`${(player.position[0] + w12) / 32}`) * 32 - offset[0] + 64;
+        parseInt(`${(player.rust.obj.position[0] + w12) / 32}`) * 32 - offset[0] + 64;
       const cey =
-        parseInt(`${(player.position[1] + h12) / 32}`) * 32 - offset[1] + 64;
+        parseInt(`${(player.rust.obj.position[1] + h12) / 32}`) * 32 - offset[1] + 64;
       for (let i = 0; i < map.chunks.length; i++) {
         const chunk = map.chunks[i];
         if (
