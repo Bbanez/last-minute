@@ -4,7 +4,7 @@ import { Ticker } from './ticker';
 import { Keyboard } from './keyboard';
 import { GameMap, createGameMap } from './map';
 import { Camera, createCamera } from './camera';
-import { Enemy } from './enemy';
+import { Enemy, createEnemy } from './enemy';
 import { loadBcmsData } from './bcms';
 import { Player, createPlayer } from './player';
 import { invoke } from '@tauri-apps/api';
@@ -38,7 +38,7 @@ export class Game {
   async load(mapName: string) {
     Ticker.subscribe(async () => {
       await invoke('on_tick');
-    })
+    });
     await loadBcmsData();
     if (this.player) {
       this.player.destroy();
@@ -58,19 +58,20 @@ export class Game {
     // Layers[0].addChild(this.player.light);
     Layers[0].addChild(this.player.container);
     this.cam = await createCamera(this.player, this.map);
-    const enemy = new Enemy(
-      [
-        this.player.rust.obj.position[0] + 100,
-        this.player.rust.obj.position[1] + 100,
-      ],
-      10
-    );
-    enemy.destination = [...this.player.rust.obj.position];
-    enemy.bb.show(Layers[2]);
+    const enemy = await createEnemy('demo');
+    // const enemy = new Enemy(
+    //   [
+    //     this.player.rust.obj.position[0] + 100,
+    //     this.player.rust.obj.position[1] + 100,
+    //   ],
+    //   10
+    // );
+    // enemy.destination = [...this.player.rust.obj.position];
+    // enemy.bb.show(Layers[2]);
     Layers[3].addChild(enemy.container);
-    Ticker.subscribe(() => {
-      enemy.destination = [...this.player.rust.obj.position];
-    });
+    // Ticker.subscribe(() => {
+    // enemy.destination = [...this.player.rust.obj.position];
+    // });
   }
 }
 

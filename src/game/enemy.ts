@@ -1,23 +1,67 @@
-import { Container } from 'pixi.js';
-import { BB, Point } from './math';
+import {
+  AnimatedSprite,
+  BaseTexture,
+  Container,
+  Rectangle,
+  Texture,
+} from 'pixi.js';
 import { Ticker } from './ticker';
+import { RustEnemy } from './rust';
+import { LmAnimationGroup, LmEnemyEntryMeta } from '../types';
+import { invoke } from '@tauri-apps/api';
+import { bcms } from './bcms';
+import { PI12, PI32, PI_2 } from './consts';
+
+export async function createEnemy(enemyDataId: string): Promise<Enemy> {
+  const enemyData = bcms.enemiesData.find((e) => e.slug === enemyDataId);
+  if (!enemyData) {
+    throw Error(`Enemy data for "${enemyDataId}" does not exist`);
+  }
+  return new Enemy(
+    await invoke<RustEnemy>('enemy_create', {
+      screen: [window.innerWidth, window.innerHeight],
+      enemyDataId,
+    }),
+    enemyData
+  );
+}
 
 export class Enemy {
   container: Container;
-  size: [number, number] = [32, 80];
-  destination: Point;
-  speed = 1;
-  move = 0;
-  angle = 0;
-  bb: BB;
+  anims: {
+    idle: {
+      anim: AnimatedSprite;
+    };
+  } = {
+    idle: {} as never,
+  };
 
   private unsubs: Array<() => void> = [];
 
-  constructor(public position: Point, public hp: number) {
-    this.destination = [this.position[0], this.position[1]];
+  constructor(public rust: RustEnemy, public enemy_data: LmEnemyEntryMeta) {
+    console.log(rust);
     this.container = new Container();
     this.container.pivot.set(0.5, 0.5);
-    this.bb = new BB(32, 80, this.position);
+    for (const k in enemy_data.animations) {
+      const key = k as keyof LmAnimationGroup;
+      const data = enemy_data.animations[key];
+      const baseTexture = BaseTexture.from(data.sheet.src);
+      const frameCount = data.sheet.width / data.width;
+      const frames: Texture[] = [];
+      for (let i = 0; i < frameCount; i++) {
+        frames.push(
+          new Texture(
+            baseTexture,
+            new Rectangle(i * data.width, 0, data.width, data.height)
+          )
+        );
+      }
+      this.anims[key].anim = new AnimatedSprite(frames);
+      this.anims[key].anim.pivot.set(data.width / 2, data.height / 2);
+      this.anims[key].anim.animationSpeed = 0.25;
+    }
+    this.container.addChild(this.anims.idle.anim);
+    this.container.position.set(...this.rust.obj.position);
     this.unsubs.push(
       Ticker.subscribe(() => {
         this.update();
@@ -25,29 +69,18 @@ export class Enemy {
     );
   }
 
-  update() {
-    const dx = this.destination[0] - this.position[0];
-    const absDx = Math.abs(dx);
-    const dy = this.destination[1] - this.position[1];
-    const absDy = Math.abs(dy);
-    if (absDx <= 0.1 && absDy <= 0.1) {
-      return;
+  async update() {
+    this.rust = await invoke('enemy_get', {
+      enemyId: this.rust.id,
+    });
+    if (
+      (this.rust.alpha > PI32 && this.rust.alpha <= PI_2) ||
+      (this.rust.alpha >= 0 && this.rust.alpha < PI12)
+    ) {
+      this.container.scale.set(-1, 1);
+    } else {
+      this.container.scale.set(1, 1);
     }
-    let alpha = Math.atan(absDy / absDx);
-    if (isNaN(alpha)) {
-      alpha = 0;
-    }
-    const absAlpha = Math.abs(alpha);
-    if (dx > 0 && dy < 0) {
-      alpha = 2 * Math.PI - absAlpha;
-    } else if (dx < 0 && dy < 0) {
-      alpha = Math.PI + absAlpha;
-    } else if (dx < 0 && dy > 0) {
-      alpha = Math.PI - absAlpha;
-    }
-    this.position[0] = this.position[0] + this.speed * Math.cos(alpha);
-    this.position[1] = this.position[1] + this.speed * Math.sin(alpha);
-    this.container.position.set(...this.position);
-    this.bb.updatePosition([this.position[0] - 16, this.position[1] - 40]);
+    this.container.position.set(...this.rust.obj.position);
   }
 }

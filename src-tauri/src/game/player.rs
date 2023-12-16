@@ -90,26 +90,7 @@ pub fn player_load(
     character_id: &str,
 ) -> Player {
     let mut state_guard = state.0.lock().unwrap();
-    let mut player = Player::new(
-        state_guard.player.obj.get_position(),
-        state_guard.player.obj.get_size(),
-        state_guard.player.map_size,
-        BaseStats::new(
-            state_guard.player.base_stats.max_hp,
-            state_guard.player.base_stats.hp,
-            state_guard.player.base_stats.damage,
-            state_guard.player.base_stats.move_speed,
-            state_guard.player.base_stats.attack_speed,
-            state_guard.player.base_stats.armor,
-        ),
-        CharacterStats::new(
-            state_guard.player.stats.recovery,
-            state_guard.player.stats.magnet,
-            state_guard.player.stats.growth,
-            state_guard.player.stats.greed,
-            state_guard.player.stats.curse,
-        ),
-    );
+    let mut player = state_guard.player.clone();
     {
         let char = state_guard.find_character(character_id);
         player.base_stats = BaseStats::new(
@@ -131,27 +112,8 @@ pub fn player_load(
     player
         .obj
         .set_position((screen_width / 2.0, screen_height / 2.0));
-    state_guard.player = player;
-    Player::new(
-        state_guard.player.obj.get_position(),
-        state_guard.player.obj.get_size(),
-        state_guard.player.map_size,
-        BaseStats::new(
-            state_guard.player.base_stats.max_hp,
-            state_guard.player.base_stats.hp,
-            state_guard.player.base_stats.damage,
-            state_guard.player.base_stats.move_speed,
-            state_guard.player.base_stats.attack_speed,
-            state_guard.player.base_stats.armor,
-        ),
-        CharacterStats::new(
-            state_guard.player.stats.recovery,
-            state_guard.player.stats.magnet,
-            state_guard.player.stats.growth,
-            state_guard.player.stats.greed,
-            state_guard.player.stats.curse,
-        ),
-    )
+    state_guard.player = player.clone();
+    player
 }
 
 #[tauri::command]
@@ -162,25 +124,5 @@ pub fn player_motion(state: tauri::State<GameState>, m: (f32, f32)) {
 
 #[tauri::command]
 pub fn player_get(state: tauri::State<GameState>) -> Player {
-    let mut state_guard = state.0.lock().unwrap();
-    Player::new(
-        state_guard.player.obj.get_position(),
-        state_guard.player.obj.get_size(),
-        state_guard.player.map_size,
-        BaseStats::new(
-            state_guard.player.base_stats.max_hp,
-            state_guard.player.base_stats.hp,
-            state_guard.player.base_stats.damage,
-            state_guard.player.base_stats.move_speed,
-            state_guard.player.base_stats.attack_speed,
-            state_guard.player.base_stats.armor,
-        ),
-        CharacterStats::new(
-            state_guard.player.stats.recovery,
-            state_guard.player.stats.magnet,
-            state_guard.player.stats.growth,
-            state_guard.player.stats.greed,
-            state_guard.player.stats.curse,
-        ),
-    )
+    state.0.lock().unwrap().player.clone()
 }

@@ -29,4 +29,10 @@ impl Store {
             .find(|item| item.slug == enemy_data_id)
             .unwrap()
     }
+
+    pub fn find_enemy(&mut self, enemy_id: &str) -> Option<&Enemy> {
+        self.enemies
+            .iter()
+            .find(|item| item.id == enemy_id)
+    }
 }

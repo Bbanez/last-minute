@@ -11,8 +11,9 @@ import { Keyboard, KeyboardEventType, KeyboardState } from './keyboard';
 import { Ticker } from './ticker';
 import { invoke } from '@tauri-apps/api';
 import { RustPlayer } from './rust';
-import { LmCharacterEntryMeta } from '../types';
+import { LmAnimationGroup, LmCharacterEntryMeta } from '../types';
 import { bcms } from './bcms';
+import { PI12, PI32, PI_2 } from './consts';
 
 export async function createPlayer(characterId: string): Promise<Player> {
   const character = bcms.characters.find((e) => e.slug === characterId);
@@ -32,6 +33,13 @@ export async function createPlayer(characterId: string): Promise<Player> {
 export class Player {
   container: Container;
   light: Sprite;
+  anims: {
+    idle: {
+      anim: AnimatedSprite;
+    };
+  } = {
+    idle: {} as never,
+  };
 
   private unsubs: Array<() => void> = [];
 
@@ -53,33 +61,25 @@ export class Player {
       })
     );
 
-    const idleBaseTexture = BaseTexture.from(
-      character.animations.idle.sheet.src
-    );
-    const frameCount =
-      character.animations.idle.sheet.width / character.animations.idle.width;
-    const idleFrames: Texture[] = [];
-    for (let i = 0; i < frameCount; i++) {
-      idleFrames.push(
-        new Texture(
-          idleBaseTexture,
-          new Rectangle(
-            i * character.animations.idle.width,
-            0,
-            character.animations.idle.width,
-            character.animations.idle.height
+    for (const k in character.animations) {
+      const key = k as keyof LmAnimationGroup;
+      const data = character.animations[key];
+      const baseTexture = BaseTexture.from(data.sheet.src);
+      const frameCount = data.sheet.width / data.width;
+      const frames: Texture[] = [];
+      for (let i = 0; i < frameCount; i++) {
+        frames.push(
+          new Texture(
+            baseTexture,
+            new Rectangle(i * data.width, 0, data.width, data.height)
           )
-        )
-      );
+        );
+      }
+      this.anims[key].anim = new AnimatedSprite(frames);
+      this.anims[key].anim.pivot.set(data.width / 2, data.height / 2);
+      this.anims[key].anim.animationSpeed = 0.25;
     }
-    const idleAnim = new AnimatedSprite(idleFrames);
-    idleAnim.play();
-    idleAnim.pivot.set(
-      character.animations.idle.width / 2,
-      character.animations.idle.height / 2
-    );
-    idleAnim.animationSpeed = 0.25;
-    this.container.addChild(idleAnim);
+    this.container.addChild(this.anims.idle.anim);
   }
 
   async setMove(state: KeyboardState) {
@@ -103,6 +103,14 @@ export class Player {
 
   async update() {
     this.rust = await invoke<RustPlayer>('player_get');
+    if (
+      (this.rust.angle > PI32 + 0.1 && this.rust.angle <= PI_2) ||
+      (this.rust.angle >= 0 && this.rust.angle < PI12 - 0.1)
+    ) {
+      this.container.scale.set(-1, 1);
+    } else if (this.rust.angle > PI12 && this.rust.angle < PI32) {
+      this.container.scale.set(1, 1);
+    }
   }
 
   destroy() {
