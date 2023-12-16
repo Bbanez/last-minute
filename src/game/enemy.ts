@@ -1,6 +1,6 @@
 import { Container } from 'pixi.js';
-import { BB, Point } from '../math';
-import { Ticker } from '../ticker';
+import { BB, Point } from './math';
+import { Ticker } from './ticker';
 
 export class Enemy {
   container: Container;

@@ -16,7 +16,7 @@ export interface GameMap {
 }
 
 export async function createGameMap(name: string): Promise<GameMap> {
-  const mapData = bcms.map.tileSet.find((e) => e.slug === name);
+  const mapData = bcms.tileSet.find((e) => e.slug === name);
   if (!mapData) {
     throw Error(`Failed to find map data for "${name}"`);
   }

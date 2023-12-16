@@ -7,6 +7,7 @@ import { Camera, createCamera } from './camera';
 import { Enemy } from './enemy';
 import { loadBcmsData } from './bcms';
 import { Player, createPlayer } from './player';
+import { invoke } from '@tauri-apps/api';
 
 export class Game {
   app: Application;
@@ -35,11 +36,10 @@ export class Game {
   }
 
   async load(mapName: string) {
+    Ticker.subscribe(async () => {
+      await invoke('on_tick');
+    })
     await loadBcmsData();
-    // await invoke('player_load', {
-    //   screenWidth: window.innerWidth,
-    //   screenHeight: window.innerHeight,
-    // });
     if (this.player) {
       this.player.destroy();
     }
@@ -54,7 +54,7 @@ export class Game {
       this.app.stage.addChild(layer);
     }
     this.map = await createGameMap(mapName);
-    this.player = await createPlayer();
+    this.player = await createPlayer('demo');
     // Layers[0].addChild(this.player.light);
     Layers[0].addChild(this.player.container);
     this.cam = await createCamera(this.player, this.map);
