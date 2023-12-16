@@ -60,6 +60,7 @@ export class Enemy {
       this.anims[key].anim.pivot.set(data.width / 2, data.height / 2);
       this.anims[key].anim.animationSpeed = 0.25;
     }
+    this.anims.idle.anim.play();
     this.container.addChild(this.anims.idle.anim);
     this.container.position.set(...this.rust.obj.position);
     this.unsubs.push(
