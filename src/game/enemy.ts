@@ -12,7 +12,10 @@ import { invoke } from '@tauri-apps/api';
 import { bcms } from './bcms';
 import { PI12, PI32, PI_2 } from './consts';
 
-export async function createEnemy(enemyDataId: string): Promise<Enemy> {
+export async function createEnemy(
+  enemyDataId: string,
+  onDestroy: () => void
+): Promise<Enemy> {
   const enemyData = bcms.enemiesData.find((e) => e.slug === enemyDataId);
   if (!enemyData) {
     throw Error(`Enemy data for "${enemyDataId}" does not exist`);
@@ -22,11 +25,13 @@ export async function createEnemy(enemyDataId: string): Promise<Enemy> {
       screen: [window.innerWidth, window.innerHeight],
       enemyDataId,
     }),
-    enemyData
+    enemyData,
+    onDestroy
   );
 }
 
 export class Enemy {
+  dead = false;
   container: Container;
   anims: {
     idle: {
@@ -38,8 +43,11 @@ export class Enemy {
 
   private unsubs: Array<() => void> = [];
 
-  constructor(public rust: RustEnemy, public enemy_data: LmEnemyEntryMeta) {
-    console.log(rust);
+  constructor(
+    public rust: RustEnemy,
+    public enemy_data: LmEnemyEntryMeta,
+    public onDestroy: () => void
+  ) {
     this.container = new Container();
     this.container.pivot.set(0.5, 0.5);
     for (const k in enemy_data.animations) {
@@ -70,18 +78,31 @@ export class Enemy {
     );
   }
 
+  destroy() {
+    this.unsubs.forEach(e => e());
+    this.unsubs = [];
+  }
+
   async update() {
-    this.rust = await invoke('enemy_get', {
-      enemyId: this.rust.id,
-    });
-    if (
-      (this.rust.alpha > PI32 && this.rust.alpha <= PI_2) ||
-      (this.rust.alpha >= 0 && this.rust.alpha < PI12)
-    ) {
-      this.container.scale.set(-1, 1);
-    } else {
-      this.container.scale.set(1, 1);
+    if (this.dead === false) {
+      const rust = await invoke<RustEnemy | null>('enemy_get', {
+        enemyId: this.rust.id,
+      });
+      if (rust) {
+        this.rust = rust;
+        if (
+          (this.rust.alpha > PI32 && this.rust.alpha <= PI_2) ||
+          (this.rust.alpha >= 0 && this.rust.alpha < PI12)
+        ) {
+          this.container.scale.set(-1, 1);
+        } else {
+          this.container.scale.set(1, 1);
+        }
+        this.container.position.set(...this.rust.obj.position);
+      } else {
+        this.dead = true;
+        this.onDestroy();
+      }
     }
-    this.container.position.set(...this.rust.obj.position);
   }
 }

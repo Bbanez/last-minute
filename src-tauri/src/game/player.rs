@@ -10,6 +10,12 @@ use super::{
 };
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+pub enum PlayerAttackType {
+    RANGE,
+    MELEE,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Player {
     pub base_stats: BaseStats,
     pub stats: CharacterStats,
@@ -17,6 +23,7 @@ pub struct Player {
     motion: (f32, f32),
     pub obj: GameObject,
     map_size: (f32, f32),
+    pub attack_type: PlayerAttackType,
 }
 
 impl Player {
@@ -26,6 +33,7 @@ impl Player {
         map_size: (f32, f32),
         base_stats: BaseStats,
         stats: CharacterStats,
+        attack_type: PlayerAttackType,
     ) -> Player {
         Player {
             base_stats,
@@ -34,6 +42,7 @@ impl Player {
             motion: (0.0, 0.0),
             obj: GameObject::new(position, size),
             map_size,
+            attack_type,
         }
     }
 

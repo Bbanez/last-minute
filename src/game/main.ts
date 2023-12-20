@@ -14,6 +14,7 @@ export class Game {
   map: GameMap = null as never;
   player: Player = null as never;
   cam: Camera = null as never;
+  enemies: Enemy[] = [];
   private unsubs: Array<() => void> = [];
 
   constructor() {
@@ -25,29 +26,33 @@ export class Game {
     this.app.ticker.add(() => {
       Ticker.tick();
     });
-    Keyboard.init();
+    Keyboard.init(); 
   }
 
   destroy() {
-    if (this.player) {
-      this.player.destroy();
-    }
-    this.app.destroy();
-  }
-
-  async load(mapName: string) {
-    Ticker.subscribe(async () => {
-      await invoke('on_tick');
-    });
-    await loadBcmsData();
+    this.unsubs.forEach((e) => e());
+    this.unsubs = [];
     if (this.player) {
       this.player.destroy();
     }
     if (this.cam) {
       this.cam.destroy();
     }
-    this.app.stage.removeChildren(0, this.app.stage.children.length);
-    this.unsubs.forEach((e) => e());
+    if (this.app) {
+      this.app.stage.removeChildren(0, this.app.stage.children.length);
+      // this.app.destroy();
+    }
+    Ticker.clear();
+  }
+
+  async load(mapName: string) {
+    this.destroy();
+    this.unsubs.push(
+      Ticker.subscribe(async () => {
+        await invoke('on_tick');
+      })
+    );
+    await loadBcmsData();
     for (let i = Layers.length - 1; i >= 0; i--) {
       const layer = Layers[i];
       layer.removeChildren(0, layer.children.length);
@@ -55,23 +60,13 @@ export class Game {
     }
     this.map = await createGameMap(mapName);
     this.player = await createPlayer('demo');
-    // Layers[0].addChild(this.player.light);
     Layers[0].addChild(this.player.container);
     this.cam = await createCamera(this.player, this.map);
-    const enemy = await createEnemy('demo');
-    // const enemy = new Enemy(
-    //   [
-    //     this.player.rust.obj.position[0] + 100,
-    //     this.player.rust.obj.position[1] + 100,
-    //   ],
-    //   10
-    // );
-    // enemy.destination = [...this.player.rust.obj.position];
-    // enemy.bb.show(Layers[2]);
+    const enemy = await createEnemy('demo', () => {
+      Layers[3].removeChild(enemy.container);
+    });
+    this.enemies.push(enemy);
     Layers[3].addChild(enemy.container);
-    // Ticker.subscribe(() => {
-    // enemy.destination = [...this.player.rust.obj.position];
-    // });
   }
 }
 

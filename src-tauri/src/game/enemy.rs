@@ -102,18 +102,19 @@ pub fn enemy_create(
 }
 
 #[tauri::command]
-pub fn enemy_get(state: tauri::State<GameState>, enemy_id: &str) -> Enemy {
+pub fn enemy_get(state: tauri::State<GameState>, enemy_id: &str) -> Option<Enemy> {
     let mut state_guard = state.0.lock().unwrap();
     let enemy_option = state_guard.find_enemy(enemy_id);
     match enemy_option {
         Some(enemy) => {
-            return enemy.clone();
+            return Some(enemy.clone());
         }
         None => {
-            panic!(
-                "Enemy '{}' does not exist in: {:?}",
-                enemy_id, state_guard.enemies
-            )
+            return None;
+            // panic!(
+            //     "Enemy '{}' does not exist in: {:?}",
+            //     enemy_id, state_guard.enemies
+            // )
         }
     }
 }

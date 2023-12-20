@@ -36,6 +36,7 @@ fn main() {
                 (3200.0, 3200.0),
                 BaseStats::new(1.0, 1.0, 1.0, 1.0, 1.0, 0.0),
                 CharacterStats::new(0.0, 32.0, 0.0, 0.0, 0.0),
+                game::player::PlayerAttackType::MELEE
             ),
         })))
         .invoke_handler(tauri::generate_handler![

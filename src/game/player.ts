@@ -3,7 +3,9 @@ import {
   BLEND_MODES,
   BaseTexture,
   Container,
+  Filter,
   Rectangle,
+  Shader,
   Sprite,
   Texture,
 } from 'pixi.js';
@@ -14,6 +16,9 @@ import { RustPlayer } from './rust';
 import { LmAnimationGroup, LmCharacterEntryMeta } from '../types';
 import { bcms } from './bcms';
 import { PI12, PI32, PI_2 } from './consts';
+import { Layers } from './layers';
+import demoFrag from './shaders/demo.frag';
+import demoVert from './shaders/demo.vert';
 
 export async function createPlayer(characterId: string): Promise<Player> {
   const character = bcms.characters.find((e) => e.slug === characterId);
@@ -68,6 +73,27 @@ export class Player {
       const frameCount = data.sheet.width / data.width;
       const frames: Texture[] = [];
       for (let i = 0; i < frameCount; i++) {
+        if (i === 0) {
+          const t = Sprite.from(
+            new Texture(
+              baseTexture,
+              new Rectangle(i * data.bb_width + 32, 32, data.bb_width, data.bb_height)
+            )
+          );
+          const uniforms = {
+            x: 0,
+            y: 0
+          };
+          t.position.set(50, 250);
+          t.filters = [new Filter(demoVert, demoFrag, uniforms)];
+          Layers[1].addChild(t);
+          this.unsubs.push(
+            Ticker.subscribe((time) => {
+              uniforms.x = Math.abs(Math.cos(time / 1000));
+              uniforms.y = Math.abs(Math.sin(time / 1000));
+            })
+          );
+        }
         frames.push(
           new Texture(
             baseTexture,
