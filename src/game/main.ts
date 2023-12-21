@@ -1,4 +1,4 @@
-import { Application } from 'pixi.js';
+import { Application, Filter, Texture } from 'pixi.js';
 import { Layers } from './layers';
 import { Ticker } from './ticker';
 import { Keyboard } from './keyboard';
@@ -8,6 +8,10 @@ import { Enemy, createEnemy } from './enemy';
 import { loadBcmsData } from './bcms';
 import { Player, createPlayer } from './player';
 import { invoke } from '@tauri-apps/api';
+import postProcessingFrag from './shaders/post-processing.frag';
+import postProcessingVert from './shaders/post-processing.vert';
+import l4Frag from './shaders/l4.frag';
+import l4Vert from './shaders/l4.vert';
 
 export class Game {
   app: Application;
@@ -23,10 +27,15 @@ export class Game {
       resizeTo: window,
       // antialias: true,
     });
+    this.app.stage.filters = [
+      new Filter(postProcessingVert, postProcessingFrag, {
+        uSampler2: Texture.from('/game/s-test.png'),
+      }),
+    ];
     this.app.ticker.add(() => {
       Ticker.tick();
     });
-    Keyboard.init(); 
+    Keyboard.init();
   }
 
   destroy() {
@@ -52,6 +61,7 @@ export class Game {
         await invoke('on_tick');
       })
     );
+    this.app.renderer.extract.image(Layers[0]);
     await loadBcmsData();
     for (let i = Layers.length - 1; i >= 0; i--) {
       const layer = Layers[i];
@@ -59,7 +69,12 @@ export class Game {
       this.app.stage.addChild(layer);
     }
     this.map = await createGameMap(mapName);
-    this.player = await createPlayer('demo');
+    this.player = await createPlayer(this.app, 'demo');
+    Layers[4].filters = [
+      new Filter(l4Vert, l4Frag, {
+        uSampler2: Texture.from('/game/s-test.png'),
+      }),
+    ];
     Layers[0].addChild(this.player.container);
     this.cam = await createCamera(this.player, this.map);
     const enemy = await createEnemy('demo', () => {

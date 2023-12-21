@@ -1,11 +1,11 @@
 import {
   AnimatedSprite,
+  Application,
   BLEND_MODES,
   BaseTexture,
   Container,
   Filter,
   Rectangle,
-  Shader,
   Sprite,
   Texture,
 } from 'pixi.js';
@@ -20,12 +20,16 @@ import { Layers } from './layers';
 import demoFrag from './shaders/demo.frag';
 import demoVert from './shaders/demo.vert';
 
-export async function createPlayer(characterId: string): Promise<Player> {
+export async function createPlayer(
+  app: Application,
+  characterId: string
+): Promise<Player> {
   const character = bcms.characters.find((e) => e.slug === characterId);
   if (!character) {
     throw Error(`Failed to find character "${characterId}"`);
   }
   return new Player(
+    app,
     await invoke<RustPlayer>('player_load', {
       characterId: 'demo',
       screenWidth: window.innerWidth,
@@ -48,12 +52,16 @@ export class Player {
 
   private unsubs: Array<() => void> = [];
 
-  constructor(public rust: RustPlayer, public character: LmCharacterEntryMeta) {
+  constructor(
+    private app: Application,
+    public rust: RustPlayer,
+    public character: LmCharacterEntryMeta
+  ) {
     this.light = Sprite.from('/game/map/p-light.png');
     this.light.blendMode = BLEND_MODES.ADD;
     this.light.pivot.set(250, 250);
     this.container = new Container();
-    this.container.addChild(this.light);
+    // this.container.addChild(this.light);
     this.unsubs.push(
       Ticker.subscribe(async () => {
         await this.update();
@@ -77,12 +85,18 @@ export class Player {
           const t = Sprite.from(
             new Texture(
               baseTexture,
-              new Rectangle(i * data.bb_width + 32, 32, data.bb_width, data.bb_height)
+              new Rectangle(
+                i * data.bb_width + 32,
+                32,
+                data.bb_width,
+                data.bb_height
+              )
             )
           );
           const uniforms = {
             x: 0,
-            y: 0
+            y: 0,
+            uSampler2: Texture.from('/game/s-test.png'),
           };
           t.position.set(50, 250);
           t.filters = [new Filter(demoVert, demoFrag, uniforms)];
