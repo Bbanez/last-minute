@@ -17,6 +17,11 @@ pub mod storage;
 
 pub struct GameState(pub Mutex<game::store::Store>);
 
+#[tauri::command]
+fn report_error(err: &str) {
+    println!("{}", err);
+}
+
 fn main() {
     let tile_sets: Vec<LmTileSetEntryMetaItem> =
         serde_json::from_str(LM_TILE_SET_META_ITEMS).unwrap();
@@ -36,15 +41,18 @@ fn main() {
                 (3200.0, 3200.0),
                 BaseStats::new(1.0, 1.0, 1.0, 1.0, 1.0, 0.0),
                 CharacterStats::new(0.0, 32.0, 0.0, 0.0, 0.0),
-                game::player::PlayerAttackType::MELEE
+                game::player::PlayerAttackType::MELEE,
+                (100.0, 100.0),
             ),
         })))
         .invoke_handler(tauri::generate_handler![
+            report_error,
             storage::storage_get,
             storage::storage_set,
             game::player::player_load,
             game::player::player_motion,
             game::player::player_get,
+            game::player::player_pointing_at,
             game::on_tick::on_tick,
             game::enemy::enemy_create,
             game::enemy::enemy_get,

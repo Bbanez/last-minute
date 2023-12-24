@@ -12,6 +12,7 @@ import postProcessingFrag from './shaders/post-processing.frag';
 import postProcessingVert from './shaders/post-processing.vert';
 import l4Frag from './shaders/l4.frag';
 import l4Vert from './shaders/l4.vert';
+import { Mouse } from './mouse';
 
 export class Game {
   app: Application;
@@ -36,6 +37,7 @@ export class Game {
       Ticker.tick();
     });
     Keyboard.init();
+    Mouse.init();
   }
 
   destroy() {
@@ -70,11 +72,7 @@ export class Game {
     }
     this.map = await createGameMap(mapName);
     this.player = await createPlayer(this.app, 'demo');
-    Layers[4].filters = [
-      new Filter(l4Vert, l4Frag, {
-        uSampler2: Texture.from('/game/s-test.png'),
-      }),
-    ];
+    Layers[4].filters = [new Filter(l4Vert, l4Frag)];
     Layers[0].addChild(this.player.container);
     this.cam = await createCamera(this.player, this.map);
     const enemy = await createEnemy('demo', () => {

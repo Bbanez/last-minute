@@ -21,11 +21,12 @@ export enum MouseEventType {
 }
 
 export interface MouseEventCallback {
-  (state: MouseState, event: MouseEvent): void;
+  (state: MouseState, event: MouseEvent): Promise<void>;
 }
 
 export interface MouseSubscription {
-  [id: string]: MouseEventCallback;
+  id: string;
+  callback: MouseEventCallback;
 }
 
 export interface MouseUnsubscribe {
@@ -45,93 +46,104 @@ export class Mouse {
     },
   };
   private static subs: {
-    [MouseEventType.ALL]: MouseSubscription;
-    [MouseEventType.MOUSE_DOWN]: MouseSubscription;
-    [MouseEventType.MOUSE_MOVE]: MouseSubscription;
-    [MouseEventType.MOUSE_UP]: MouseSubscription;
+    [MouseEventType.ALL]: Array<MouseSubscription>;
+    [MouseEventType.MOUSE_DOWN]: Array<MouseSubscription>;
+    [MouseEventType.MOUSE_MOVE]: Array<MouseSubscription>;
+    [MouseEventType.MOUSE_UP]: Array<MouseSubscription>;
   } = {
-    [MouseEventType.ALL]: {},
-    [MouseEventType.MOUSE_DOWN]: {},
-    [MouseEventType.MOUSE_MOVE]: {},
-    [MouseEventType.MOUSE_UP]: {},
+    [MouseEventType.ALL]: [],
+    [MouseEventType.MOUSE_DOWN]: [],
+    [MouseEventType.MOUSE_MOVE]: [],
+    [MouseEventType.MOUSE_UP]: [],
   };
 
-  private static trigger(type: MouseEventType, event: MouseEvent) {
-    for (const id in Mouse.subs[type]) {
-      Mouse.subs[type][id](Mouse.state, event);
+  private static async trigger(type: MouseEventType, event: MouseEvent) {
+    for (let i = 0; i < Mouse.subs[type].length; i++) {
+      const sub = Mouse.subs[type][i];
+      await sub.callback(Mouse.state, event);
     }
-    for (const id in Mouse.subs[MouseEventType.ALL]) {
-      Mouse.subs[MouseEventType.ALL][id](Mouse.state, event);
+    for (let i = 0; i < Mouse.subs[MouseEventType.ALL].length; i++) {
+      const sub = Mouse.subs[MouseEventType.ALL][i];
+      await sub.callback(Mouse.state, event);
     }
   }
-  private static onMouseDown(event: MouseEvent) {
+
+  private static async onMouseDown(event: MouseEvent) {
     if (event.button === 0) {
       if (!Mouse.state.left) {
         Mouse.state.left = true;
-        Mouse.trigger(MouseEventType.MOUSE_DOWN, event);
+        await Mouse.trigger(MouseEventType.MOUSE_DOWN, event);
       }
     } else if (event.button === 1) {
       if (!Mouse.state.middle) {
         Mouse.state.middle = true;
-        Mouse.trigger(MouseEventType.MOUSE_DOWN, event);
+        await Mouse.trigger(MouseEventType.MOUSE_DOWN, event);
       }
     } else if (event.button === 2) {
       if (!Mouse.state.right) {
         Mouse.state.right = true;
-        Mouse.trigger(MouseEventType.MOUSE_DOWN, event);
+        await Mouse.trigger(MouseEventType.MOUSE_DOWN, event);
       }
     }
   }
-  private static onMouseUp(event: MouseEvent) {
+
+  private static async onMouseUp(event: MouseEvent) {
     if (event.button === 0) {
       if (Mouse.state.left) {
         Mouse.state.left = false;
-        Mouse.trigger(MouseEventType.MOUSE_UP, event);
+        await Mouse.trigger(MouseEventType.MOUSE_UP, event);
       }
     } else if (event.button === 1) {
       if (Mouse.state.middle) {
         Mouse.state.middle = false;
-        Mouse.trigger(MouseEventType.MOUSE_UP, event);
+        await Mouse.trigger(MouseEventType.MOUSE_UP, event);
       }
     } else if (event.button === 2) {
       if (Mouse.state.right) {
         Mouse.state.right = false;
-        Mouse.trigger(MouseEventType.MOUSE_UP, event);
+        await Mouse.trigger(MouseEventType.MOUSE_UP, event);
       }
     }
   }
-  private static onMouseMove(event: MouseEvent) {
+
+  private static async onMouseMove(event: MouseEvent) {
     Mouse.state.delta.x = event.clientX - Mouse.state.x;
     Mouse.state.delta.y = event.clientY - Mouse.state.y;
     Mouse.state.x = event.clientX;
     Mouse.state.y = event.clientY;
-    Mouse.trigger(MouseEventType.MOUSE_MOVE, event);
+    await Mouse.trigger(MouseEventType.MOUSE_MOVE, event);
   }
-  private static onContext(event: MouseEvent) {
-    event.preventDefault();
-  }
+
+  // private static onContext(event: MouseEvent) {
+  //   event.preventDefault();
+  // }
 
   static init() {
     window.addEventListener('mousedown', Mouse.onMouseDown);
     window.addEventListener('mouseup', Mouse.onMouseUp);
     window.addEventListener('mousemove', Mouse.onMouseMove);
-    window.addEventListener('contextmenu', Mouse.onContext);
+    // window.addEventListener('contextmenu', Mouse.onContext);
   }
   static destroy() {
     window.removeEventListener('mousedown', Mouse.onMouseDown);
     window.removeEventListener('mouseup', Mouse.onMouseUp);
     window.removeEventListener('mousemove', Mouse.onMouseMove);
-    window.removeEventListener('contextmenu', Mouse.onContext);
+    // window.removeEventListener('contextmenu', Mouse.onContext);
   }
   static subscribe(
     type: MouseEventType,
-    callback: MouseEventCallback,
+    callback: MouseEventCallback
   ): () => void {
     const id = uuidv4();
-    Mouse.subs[type][id] = callback;
+    Mouse.subs[type].push({ id, callback });
 
     return () => {
-      delete Mouse.subs[type][id];
+      for (let i = 0; i < Mouse.subs[type].length; i++) {
+        const sub = Mouse.subs[type][i];
+        if (sub.id === id) {
+          Mouse.subs[type].splice(i, 1);
+        }
+      }
     };
   }
 }

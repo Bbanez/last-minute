@@ -6,6 +6,7 @@ use crate::GameState;
 
 use super::{
     consts::{PI12, PI14, PI32, PI34, PI54, PI74},
+    math::Math,
     object::{BaseStats, CharacterStats, GameObject},
 };
 
@@ -24,6 +25,8 @@ pub struct Player {
     pub obj: GameObject,
     map_size: (f32, f32),
     pub attack_type: PlayerAttackType,
+    pointing_at: (f32, f32),
+    pointing_at_angle: f32,
 }
 
 impl Player {
@@ -34,6 +37,7 @@ impl Player {
         base_stats: BaseStats,
         stats: CharacterStats,
         attack_type: PlayerAttackType,
+        pointing_at: (f32, f32),
     ) -> Player {
         Player {
             base_stats,
@@ -43,6 +47,8 @@ impl Player {
             obj: GameObject::new(position, size),
             map_size,
             attack_type,
+            pointing_at,
+            pointing_at_angle: Math::get_angle(position, pointing_at),
         }
     }
 
@@ -66,6 +72,15 @@ impl Player {
         } else if self.motion.0 == 1.0 && self.motion.1 == -1.0 {
             self.angle = PI74;
         }
+    }
+
+    pub fn set_pointing_at(&mut self, pointing_at: (f32, f32)) {
+        self.pointing_at = pointing_at;
+        self.pointing_at_angle = Math::get_angle(self.obj.get_position(), pointing_at);
+    }
+
+    pub fn get_pointing_at(&mut self) -> (f32, f32) {
+        self.pointing_at
     }
 
     pub fn calc_position(&mut self) {
@@ -97,9 +112,11 @@ pub fn player_load(
     screen_width: f32,
     screen_height: f32,
     character_id: &str,
+    pointing_at: (f32, f32)
 ) -> Player {
     let mut state_guard = state.0.lock().unwrap();
     let mut player = state_guard.player.clone();
+    player.set_pointing_at(pointing_at);
     {
         let char = state_guard.find_character(character_id);
         player.base_stats = BaseStats::new(
@@ -121,6 +138,7 @@ pub fn player_load(
     player
         .obj
         .set_position((screen_width / 2.0, screen_height / 2.0));
+    // .set_position((2000.0, 800.0));
     state_guard.player = player.clone();
     player
 }
@@ -134,4 +152,11 @@ pub fn player_motion(state: tauri::State<GameState>, m: (f32, f32)) {
 #[tauri::command]
 pub fn player_get(state: tauri::State<GameState>) -> Player {
     state.0.lock().unwrap().player.clone()
+}
+
+#[tauri::command]
+pub fn player_pointing_at(state: tauri::State<GameState>, p: (f32, f32)) -> Player {
+    let mut state_guard = state.0.lock().unwrap();
+    state_guard.player.set_pointing_at(p);
+    state_guard.player.clone()
 }

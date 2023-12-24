@@ -62,21 +62,21 @@ pub fn enemy_create(
 ) -> Enemy {
     let mut state_guard = state.0.lock().unwrap();
     let enemy_data = state_guard.find_enemy_data(enemy_data_id);
-    let top_or_bottom = rand::thread_rng().gen_range(0..1);
-    let left_or_right = rand::thread_rng().gen_range(0..1);
-    let x_or_y = rand::thread_rng().gen_range(0..1);
+    let top_or_bottom = rand::thread_rng().gen_range(1..100);
+    let left_or_right = rand::thread_rng().gen_range(1..100);
+    let x_or_y = rand::thread_rng().gen_range(1..100);
     let x: f32;
     let y: f32;
-    if x_or_y == 0 {
+    if x_or_y < 50 {
         y = rand::thread_rng().gen_range(-150.0..((screen.1 as f32) + 150.0));
-        if top_or_bottom == 0 {
+        if top_or_bottom < 50 {
             x = rand::thread_rng().gen_range(-150.0..-50.0);
         } else {
             x = rand::thread_rng().gen_range((screen.0 as f32 + 50.0)..(screen.0 as f32 + 150.0));
         }
     } else {
         x = rand::thread_rng().gen_range(-150.0..((screen.0 as f32) + 150.0));
-        if left_or_right == 0 {
+        if left_or_right < 50 {
             y = rand::thread_rng().gen_range(-150.0..-50.0);
         } else {
             y = rand::thread_rng().gen_range((screen.1 as f32 + 50.0)..(screen.1 as f32 + 150.0));
