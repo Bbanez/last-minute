@@ -19,7 +19,7 @@ pub struct GameState(pub Mutex<game::store::Store>);
 
 #[tauri::command]
 fn report_error(err: &str) {
-    println!("{}", err);
+    println!("FRErr: {}", err);
 }
 
 fn main() {
