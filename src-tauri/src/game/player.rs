@@ -27,6 +27,9 @@ pub struct Player {
     pub attack_type: PlayerAttackType,
     pointing_at: (f32, f32),
     pointing_at_angle: f32,
+    attacking: bool,
+    attack_ticks: u32,
+    attack_duration_in_ticks: u32,
 }
 
 impl Player {
@@ -40,7 +43,7 @@ impl Player {
         pointing_at: (f32, f32),
     ) -> Player {
         Player {
-            base_stats,
+            base_stats: base_stats.clone(),
             stats,
             angle: 0.0,
             motion: (0.0, 0.0),
@@ -49,6 +52,9 @@ impl Player {
             attack_type,
             pointing_at,
             pointing_at_angle: Math::get_angle(position, pointing_at),
+            attacking: false,
+            attack_ticks: 0,
+            attack_duration_in_ticks: (60.0 * base_stats.attack_speed) as u32,
         }
     }
 
@@ -79,11 +85,39 @@ impl Player {
         self.pointing_at_angle = Math::get_angle(self.obj.get_position(), pointing_at);
     }
 
+    pub fn attack(&mut self) {
+        if self.attacking == false {
+            self.attacking = true;
+            self.attack_ticks = 0
+        }
+    }
+
     pub fn get_pointing_at(&mut self) -> (f32, f32) {
         self.pointing_at
     }
 
-    pub fn calc_position(&mut self) {
+    pub fn is_attacking(&mut self) -> bool {
+        self.attacking
+    }
+
+    pub fn on_tick(&mut self) {
+        self.calc_position();
+        self.update_attack();
+    }
+
+    fn update_attack(&mut self) {
+        let k = (120.0 - 60.0) / (0.5 - 1.0);
+        let n = 60.0 - k;
+        if self.attacking == true {
+            self.attack_duration_in_ticks = (k * self.base_stats.attack_speed + n) as u32;
+            self.attack_ticks = self.attack_ticks + 1;
+            if self.attack_ticks == self.attack_duration_in_ticks {
+                self.attacking = false;
+            }
+        }
+    }
+
+    fn calc_position(&mut self) {
         let old_position = self.obj.get_position();
         let position = (
             self.base_stats.move_speed * self.angle.cos() * self.motion.0.abs() + old_position.0,
@@ -112,7 +146,7 @@ pub fn player_load(
     screen_width: f32,
     screen_height: f32,
     character_id: &str,
-    pointing_at: (f32, f32)
+    pointing_at: (f32, f32),
 ) -> Player {
     let mut state_guard = state.0.lock().unwrap();
     let mut player = state_guard.player.clone();

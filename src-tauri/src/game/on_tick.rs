@@ -3,7 +3,7 @@ use crate::GameState;
 #[tauri::command]
 pub fn on_tick(state: tauri::State<GameState>) {
     let mut state_guard = state.0.lock().unwrap();
-    state_guard.player.calc_position();
+    state_guard.player.on_tick();
     let mut i = 0;
     while i < state_guard.enemies.len() {
         if state_guard.enemies[i].base_stats.hp <= 0.0 {
