@@ -72,7 +72,10 @@ export class Player {
       Ticker.subscribe(async () => {
         this.pointingAtLine.clear();
         this.pointingAtLine.lineStyle(2, 0xff0000, 1);
-        this.pointingAtLine.moveTo(this.container.position.x, this.container.position.y);
+        this.pointingAtLine.moveTo(
+          this.container.position.x,
+          this.container.position.y
+        );
         this.pointingAtLine.lineTo(Mouse.state.x, Mouse.state.y);
         await this.update();
       }),
@@ -86,6 +89,9 @@ export class Player {
         await this.setMove(state);
       }),
       Mouse.subscribe(MouseEventType.MOUSE_MOVE, async (state) => {
+        if (state.left) {
+          await invoke('player_attack');
+        }
         this.rust = await invoke<RustPlayer>('player_pointing_at', {
           p: [state.x, state.y],
         });

@@ -8,4 +8,3 @@ pub mod on_tick;
 pub mod player;
 pub mod projectile;
 pub mod store;
-pub mod weapon;

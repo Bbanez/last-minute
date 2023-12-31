@@ -53,6 +53,7 @@ fn main() {
             game::player::player_motion,
             game::player::player_get,
             game::player::player_pointing_at,
+            game::player::player_attack,
             game::on_tick::on_tick,
             game::enemy::enemy_create,
             game::enemy::enemy_get,

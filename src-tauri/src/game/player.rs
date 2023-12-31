@@ -141,6 +141,12 @@ impl Player {
 }
 
 #[tauri::command]
+pub fn player_attack(state: tauri::State<GameState>) {
+    let mut state_guard = state.0.lock().unwrap();
+    state_guard.player.attack();
+}
+
+#[tauri::command]
 pub fn player_load(
     state: tauri::State<GameState>,
     screen_width: f32,
