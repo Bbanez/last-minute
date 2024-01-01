@@ -35,6 +35,7 @@ fn main() {
             characters,
             enemies_data,
             enemies: vec![],
+            projectiles: vec![],
             player: game::player::Player::new(
                 (100.0, 100.0),
                 (32.0, 80.0),

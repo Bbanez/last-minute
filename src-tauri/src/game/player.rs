@@ -8,6 +8,7 @@ use super::{
     consts::{PI12, PI14, PI32, PI34, PI54, PI74},
     math::Math,
     object::{BaseStats, CharacterStats, GameObject},
+    projectile::Projectile,
 };
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -143,7 +144,18 @@ impl Player {
 #[tauri::command]
 pub fn player_attack(state: tauri::State<GameState>) {
     let mut state_guard = state.0.lock().unwrap();
-    state_guard.player.attack();
+    if state_guard.player.is_attacking() {
+        let player = state_guard.player.clone();
+        state_guard.projectiles.push(Projectile::new(
+            player.obj.clone().get_position(),
+            player.pointing_at,
+            (5.0, 5.0),
+            true,
+            300.0,
+            1.0,
+        ));
+        state_guard.player.attack();
+    }
 }
 
 #[tauri::command]
